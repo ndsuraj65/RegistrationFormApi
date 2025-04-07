@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿
+using Npgsql;
 using RegistrationApi.Models;
 using System.Data;
 
@@ -13,7 +14,7 @@ namespace RegistrationApi.DataAccess
             _connectionString = config.GetConnectionString("DefaultConnection");
         }
 
-        public void CreateUser(UserModel user)
+        public async Task CreateUserAsync(UserModel user)
         {
             using var con = new NpgsqlConnection(_connectionString);
             using var cmd = new NpgsqlCommand("sp_create_user", con);
@@ -23,45 +24,19 @@ namespace RegistrationApi.DataAccess
             cmd.Parameters.AddWithValue("p_phone", user.Phone);
             cmd.Parameters.AddWithValue("p_password", user.Password);
 
-            con.Open();
-            cmd.ExecuteNonQuery();
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
         }
 
-        /* public List<UserModel> GetAllUsers()
-         {
-             var users = new List<UserModel>();
-             using var con = new NpgsqlConnection(_connectionString);
-             using var cmd = new NpgsqlCommand("sp_get_all_users", con);
-             cmd.CommandType = CommandType.StoredProcedure;
-
-             con.Open();
-             using var reader = cmd.ExecuteReader();
-             while (reader.Read())
-             {
-                 users.Add(new UserModel
-                 {
-                     Id = Convert.ToInt32(reader["id"]),
-                     FullName = reader["fullname"].ToString(),
-                     Email = reader["email"].ToString(),
-                     Phone = reader["phone"].ToString(),
-                     CreatedAt = Convert.ToDateTime(reader["createdat"])
-                 });
-             }
-
-             return users;
-         }
- */
-        public List<UserModel> GetAllUsers()
+        public async Task<List<UserModel>> GetAllUsersAsync()
         {
             var users = new List<UserModel>();
             using var con = new NpgsqlConnection(_connectionString);
-
-            // ✅ Use SELECT instead of CommandType.StoredProcedure
             using var cmd = new NpgsqlCommand("SELECT * FROM sp_get_all_users()", con);
 
-            con.Open();
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            await con.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
                 users.Add(new UserModel
                 {
@@ -76,42 +51,17 @@ namespace RegistrationApi.DataAccess
             return users;
         }
 
-        /*public UserModel GetUserById(int id)
-        {
-            using var con = new NpgsqlConnection(_connectionString);
-            using var cmd = new NpgsqlCommand("sp_get_user_by_id", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("p_id", id);
-
-            con.Open();
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return new UserModel
-                {
-                    Id = Convert.ToInt32(reader["id"]),
-                    FullName = reader["fullname"].ToString(),
-                    Email = reader["email"].ToString(),
-                    Phone = reader["phone"].ToString(),
-                    CreatedAt = Convert.ToDateTime(reader["createdat"])
-                };
-            }
-
-            return null;
-        }*/
-        public UserModel GetUserById(int id)
+        public async Task<UserModel> GetUserByIdAsync(int id)
         {
             UserModel user = null;
-
             using var con = new NpgsqlConnection(_connectionString);
-            // ✅ Call it like a SQL SELECT
             using var cmd = new NpgsqlCommand("SELECT * FROM sp_get_user_by_id(@p_id)", con);
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.AddWithValue("p_id", id);
 
-            con.Open();
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            await con.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
             {
                 user = new UserModel
                 {
@@ -126,8 +76,7 @@ namespace RegistrationApi.DataAccess
             return user;
         }
 
-
-        public void UpdateUser(UserModel user)
+        public async Task UpdateUserAsync(UserModel user)
         {
             using var con = new NpgsqlConnection(_connectionString);
             using var cmd = new NpgsqlCommand("sp_update_user", con);
@@ -138,21 +87,19 @@ namespace RegistrationApi.DataAccess
             cmd.Parameters.AddWithValue("p_email", user.Email);
             cmd.Parameters.AddWithValue("p_phone", user.Phone);
 
-            con.Open();
-            cmd.ExecuteNonQuery();
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
         }
 
-
-        public void DeleteUser(int id)
+        public async Task DeleteUserAsync(int id)
         {
             using var con = new NpgsqlConnection(_connectionString);
-            using var cmd = new NpgsqlCommand("SELECT sp_delete_user(@p_id)", con); // ✅ SELECT function
+            using var cmd = new NpgsqlCommand("SELECT sp_delete_user(@p_id)", con);
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.AddWithValue("p_id", id);
 
-            con.Open();
-            cmd.ExecuteNonQuery();
+            await con.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
         }
-
     }
 }

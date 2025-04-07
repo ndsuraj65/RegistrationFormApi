@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using RegistrationApi.Business;
-
 using RegistrationApi.Models;
+using System.Threading.Tasks;
 
 namespace RegistrationApi.Controllers
 {
@@ -17,11 +18,11 @@ namespace RegistrationApi.Controllers
         }
 
         [HttpPost("create")]
-        public IActionResult Create([FromBody] UserModel user)
+        public async Task<IActionResult> Create([FromBody] UserModel user)
         {
             try
             {
-                _service.CreateUser(user);
+                await _service.CreateUserAsync(user);
                 return Ok(new { message = "User created successfully." });
             }
             catch (ArgumentException ex)
@@ -30,30 +31,30 @@ namespace RegistrationApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "You are entered duplicate Email Id-Please enter Unique.", detail = ex.Message });
+                return StatusCode(500, new { message = "You are entered duplicate Email Id - Please enter Unique.", detail = ex.Message });
             }
         }
 
         [HttpGet("all")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var users = _service.GetAllUsers();
+                var users = await _service.GetAllUsersAsync();
                 return Ok(users);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Users Not found .", detail = ex.Message });
+                return StatusCode(500, new { message = "Users not found.", detail = ex.Message });
             }
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             try
             {
-                var user = _service.GetUserById(id);
+                var user = await _service.GetUserByIdAsync(id);
                 return Ok(user);
             }
             catch (KeyNotFoundException ex)
@@ -67,11 +68,11 @@ namespace RegistrationApi.Controllers
         }
 
         [HttpPut("update")]
-        public IActionResult Update([FromBody] UserModel user)
+        public async Task<IActionResult> Update([FromBody] UserModel user)
         {
             try
             {
-                _service.UpdateUser(user);
+                await _service.UpdateUserAsync(user);
                 return Ok(new { message = "User updated successfully." });
             }
             catch (ArgumentException ex)
@@ -84,16 +85,16 @@ namespace RegistrationApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "User not exist.", detail = ex.Message });
+                return StatusCode(500, new { message = "User does not exist.", detail = ex.Message });
             }
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _service.DeleteUser(id);
+                await _service.DeleteUserAsync(id);
                 return Ok(new { message = "User deleted successfully." });
             }
             catch (ArgumentException ex)
@@ -106,7 +107,7 @@ namespace RegistrationApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "User not exist.", detail = ex.Message });
+                return StatusCode(500, new { message = "User does not exist.", detail = ex.Message });
             }
         }
     }
