@@ -14,6 +14,7 @@ namespace RegistrationApi.Business
     {
         private readonly UserDAL _userDal;
 
+
         public UserService(UserDAL userDal)
         {
             _userDal = userDal;
